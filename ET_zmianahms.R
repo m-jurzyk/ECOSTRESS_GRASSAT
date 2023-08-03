@@ -12,7 +12,6 @@
 
 library(tidyverse)
 
-install.packages("dplyr")
 
 modis <- read.csv("/Users/maciejjurzyk/Downloads/GRASSAT-WLKP-MOD11A1-061-results.csv")
 
@@ -33,13 +32,6 @@ library(dplyr)
 
 library(ggplot2)
 
-ecostress %>% glimpse()
-
-ecostress %>% ggplot(mapping = aes(x=Date,y=ET_canopy))+
-  geom_point()+
-  facet_wrap(~Category)
-
-
 ##1.1 Changing character type of data into  ----
 
 
@@ -47,30 +39,29 @@ ecostress %>% ggplot(mapping = aes(x=Date,y=ET_canopy))+
 
 e2 <- read.csv("/Users/maciejjurzyk/Downloads/ET_G - GRASSAT-WLKP-ECO3ETPTJPL-001-results.csv")
 
-e3 <- e2%>% mutate(e2$First_10_Characters <- substr(e2$Date, 1, 10))
-
 e2 %>% glimpse()
 
-e3 <- e2 %>%
-  mutate(
-    Date = ymd_hms(Date),      # date and time modification
-    Time = format(Date, "%H:%M:%S") 
-  ) %>%
-  select(-Date)
+e3 <- e2%>% mutate(e2$First_10_Characters <- substr(e2$Date, 1, 10))
 
 e3 %>% glimpse()
 
-e4 <- e3 %>% mutate(day=ymd(e3$First_10_Characters))
+e4 <- e3 %>%
+  mutate(
+    Date = ymd_hms(Date),      
+    Time = format(Date, "%H:%M:%S")  
+  )
 
 e4 %>% glimpse()
 
+e5 <- e4 %>% mutate(day=ymd(e4$'e2$First_10_Characters <- substr(e2$Date, 1, 10)'))
 
-e3 %>% hms(e3$Time)
+e5 %>% glimpse()
 
-et<- e4 %>% mutate(godz=hms(e3$Time))
+e5%>% hms(l$Time)
 
-et%>% glimpse() # full success! 
+et<- e5 %>% mutate(godz=hms(e5$Time))
 
+e5%>% glimpse() # full success! 
 
 ###1.12 LST ECOSTRESS  Data  ---- 
 
@@ -154,6 +145,36 @@ modlst1 <- modlst %>%  mutate(TempCnight=MOD11A1_061_LST_Night_1km  -273.15)
 
 modlst1%>% glimpse()
 
+###1.13 LST Ground Mesurements Data  ---- 
+
+gd <- read.csv("/Users/maciejjurzyk/Downloads/TEMP2M_Recznie - Arkusz1-2.csv")
+
+gd %>% glimpse()
+
+gd1 <- gd%>% mutate(gd$First_10_Characters <- substr(gd$Date, 1, 10))
+
+gd1 %>% glimpse()
+
+gd2 <- gd1 %>%
+  mutate(
+    Date = ymd_hms(Date),      
+    Time = format(Date, "%H:%M:%S")  
+  ) %>%
+  select(-Date)
+
+gd2 %>% glimpse()
+
+gd3 <- gd2 %>% mutate(day=ymd(gd2$'gd$First_10_Characters <- substr(gd$Date, 1, 10)'))
+
+gd3%>% glimpse() # full success! 
+
+####1.121 0 into NA conversion  ---- 
+
+gd4 <- gd3 %>%
+  mutate_all(.funs = ~replace(., . == 0, NA))
+
+gd4 %>% glimpse()
+
 
 ###1.2 GGPLOT ----
 
@@ -163,7 +184,14 @@ et %>% ggplot(mapping = aes(x=day,y=ET_canopy))+
   geom_point()+
   geom_smooth()+
   facet_wrap(~Category)+
-  theme_minimal()
+  theme_minimal()+
+  scale_y_continuous(limits = c(0,100))+
+  labs(
+    title = "Ewapotranspiracja łąk GRASSAT w Wielkopolsce",
+    x = "Data",
+    y = "Ewapotranspiracja (%)",
+    caption = "Na podstawie danych ECOSTRESS"
+  )
 
 #### 1.21 LST Ecostress ----
 
@@ -171,10 +199,17 @@ lstC %>% ggplot(mapping = aes(x=day,y=TempC))+
   geom_point()+
   geom_smooth()+
   facet_wrap(~Category)+
-  theme_minimal()
+  theme_minimal()+
+  scale_y_continuous(limits = c(-20, 40))+
+  labs(
+    title = "Temperatura powierzchni mierzona w ciągu dnia na poszczególnych łąkach GRASSAT w Wielkopolsce",
+    x = "Data",
+    y = "Temperatura (°C)",
+    caption = "Na podstawie danych ECOSTRESS"
+  )
+  
 
 #### 1.22 LST MODIS ----
-
 
 ## Temp Day
 
@@ -182,15 +217,37 @@ modlst1 %>% ggplot(mapping = aes(x=day,y=TempCday))+
   geom_point()+
   geom_smooth()+
   facet_wrap(~Category)+
-  theme_minimal()
+  theme_minimal()+
+  scale_y_continuous(limits = c(-20, 40))+
+  labs(
+    title = "Temperatura powierzchni mierzona w ciągu dnia na poszczególnych łąkach GRASSAT w Wielkopolsce",
+    x = "Data",
+    y = "Temperatura (°C)",
+    caption = "Na podstawie danych MODIS"
+  )
 
-## Temp Night
 
 modlst1 %>% ggplot(mapping = aes(x=day,y=TempCnight))+
   geom_point()+
   geom_smooth()+
   facet_wrap(~Category)+
+  theme_minimal()+
+  scale_y_continuous(limits = c(-20, 40))+
+  labs(
+    title = "Temperatura powierzchni mierzona w nocy na poszczególnych łąkach GRASSAT w Wielkopolsce",
+    x = "Data",
+    y = "Temperatura (°C)",
+    caption = "Na podstawie danych MODIS"
+  )
+
+#Ground measurements 
+
+gd4 %>% ggplot(mapping = aes(x=day,y=Temp))+
+  geom_smooth()+
+  facet_wrap(~Category)+
   theme_minimal()
+
+# NOT WORKING!!! 
 
 
 
