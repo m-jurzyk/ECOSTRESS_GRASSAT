@@ -1,21 +1,22 @@
-#0 About Project ----
+#0 About the project ----
 
-#The ECOSTRESS GRASSAT Git repository is a collection 
-#of data and code that showcases a project centered around the utilization of
-#MODIS and ECOSTRESS data in the GRASSAT field sites located in the Wielkopolska region of Poland. 
+#In this R GIT repository you will find a project in which 
+#I study the relationships between ground-based meteorological data
+#With NASA ECOSTRESS and MODIS data. In the study, I want to calculate the evapotranspiration of individual meadows in Wielkopolska, Poland
+#I compare the surface temperature of individual fields with various data and the finished ECOSTRESS potential evapotranspiration product to
+#Dive into this data.
 
-#The main goal of the project is to collect data from various sources 
-#(satellite - NASA, Modis and Ecostress) as well as ground-based meteorological 
-#measurements, and then to calculate evapotranspiration processes based on the Ts-Ta 
+#The main goal of the project is to collect data from various sources
+#(satellite - NASA, Modis and Ecostress) and ground meteorological
+#measurements and then calculation of evapotranspiration processes based on Ts-Ta
 #formula
 
-#The project's core focus lies in conducting an in-depth analysis of temperature and 
-#vapotranspiration datasets, unveiling critical insights into the local and regional
-#environmental dynamics.
+# Evapotransspiration data sets, revealing critical local and regional information
+#dynamics of the environment.
 
-#P.S. Sorry for some ggplot descriptions in Polish**
+#PS Sorry for some ggplot descriptions in Polish**
 
-#1.0 CSV files oprerations ----
+#1.0 Operations on CSV files ----
 
 library(tidyverse)
 
