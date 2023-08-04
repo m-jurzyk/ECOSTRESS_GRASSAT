@@ -304,12 +304,64 @@ gd5 %>%
 # 4.0 Joining tables----
 
 
-gd5 %>% glimpse()
+# Merging ground measurement data with modis data 
+
+modis_ground <- gd5 %>%
+  left_join(modlst1, by = c("Category", "day"))
+
+glimpse(modis_ground)
+
+library(ggplot2)
+
+ggplot(modis_ground) +
+  geom_smooth(aes(x = day, y = Temp, color = "Temp")) +
+  geom_smooth(aes(x = day, y = TempCday, color = "TempCday")) +
+  geom_smooth(aes(x = day, y = TempCnight, color = "TempCnight")) +
+  labs(title = "Porównanie Temperatur Modis dzień noc i pomiarów naziemnych ", x = "Rok", y = "Temperatura") +
+  theme_minimal()
 
 
 
+# Joining tables with ecostress data
+
+lstmeg <- modis_ground %>%
+  left_join(lstC, by = c("Category", "day"))
+
+lstmeg %>% glimpse()
+
+ggplot(lstmeg) +
+  geom_smooth(aes(x = day, y = Temp, color = "Temp")) +
+  geom_smooth(aes(x = day, y = TempCday, color = "TempCday")) +
+  geom_smooth(aes(x = day, y = TempCnight, color = "TempCnight")) +
+  geom_smooth(aes(x = day, y = TempC, color="TempC"))+
+  labs(title = "Porównanie Temperatur Modis dzień noc i pomiarów naziemnych i danych ECOSTRESS ", x = "Rok", y = "Temperatura") +
+  theme_minimal()
 
 
+# Adding evapotranspiration ecostress data
+
+tempevp <- lstmeg  %>%
+  left_join(e5, by = c("Category", "day"))
+
+
+tempevp %>% glimpse()
+
+
+ggplot(tempevp) +
+  geom_point(aes(x = day, y= ET_canopy))+
+  geom_smooth(aes(x = day, y= ET_canopy))+
+  geom_smooth(aes(x = day, y= ET_daily))+
+  labs(title = "Porównanie Temperatur Modis dzień noc i pomiarów naziemnych i danych ECOSTRESS ", x = "Rok", y = "Temperatura") +
+  theme_minimal()
+
+
+# Final Table: 
+
+# - tempevp : Evapotranspiration data from ECOSTRESS sensor, LST ECOSTRESSS data,
+# Modis LST night and day data and ground measurements data
+
+
+ 
 
 
 
