@@ -120,6 +120,7 @@ mod %>% glimpse()
 
 m2 <- mod%>% mutate(mod$First_10_Characters <- substr(mod$Date, 1, 10))
 
+
 m2 %>% glimpse()
 
 m3 <- m2 %>%
