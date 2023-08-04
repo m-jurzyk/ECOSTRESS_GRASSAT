@@ -1,4 +1,4 @@
-#0- About Project ----
+#0 About Project ----
 
 #The ECOSTRESS GRASSAT Git repository is a comprehensive and dynamic collection 
 #of data and code that showcases a project centered around the utilization of
@@ -8,7 +8,7 @@
 #vapotranspiration datasets, unveiling critical insights into the local and regional
 #environmental dynamics.
 
-#1 Read CSV Files ----
+#1.0 CSV files oprerations ----
 
 library(tidyverse)
 
@@ -24,7 +24,7 @@ temp_2m <- read.csv("/Users/maciejjurzyk/Downloads/Arkusz kalkulacyjny bez tytu�
 opad_meteo <- read.csv("/Users/maciejjurzyk/Downloads/Arkusz kalkulacyjny bez tytułu - odczyty_GRASSAT_ERA5_opad_2020-.csv")
 
 
-##1.0 Packages loading ----
+##1.1 Packages loading ----
 
 library(lubridate)
 
@@ -32,10 +32,10 @@ library(dplyr)
 
 library(ggplot2)
 
-##1.1 Changing character type of data into  ----
+##1.12 Changing character type of data into  ----
 
 
-###1.11 Evapotranpsiration Data  ---- 
+###1.13 Evapotranpsiration Data  ---- 
 
 e2 <- read.csv("/Users/maciejjurzyk/Downloads/ET_G - GRASSAT-WLKP-ECO3ETPTJPL-001-results.csv")
 
@@ -63,7 +63,7 @@ et<- e5 %>% mutate(godz=hms(e5$Time))
 
 e5%>% glimpse() # full success! 
 
-###1.12 LST ECOSTRESS  Data  ---- 
+###1.14 LST ECOSTRESS  Data  ---- 
 
 l1 <- read.csv("/Users/maciejjurzyk/Downloads/Arkusz kalkulacyjny bez tytułu - GRASSAT-WLKP-ECO2LSTE-001-results.csv")
 
@@ -93,19 +93,19 @@ lst1<- l %>% mutate(godz=hms(l$Time))
 
 lst1%>% glimpse() # full success! 
 
-####1.121 0 into NA conversion  ---- 
+####1.141 0 into NA conversion  ---- 
 
 lst3 <- lst1 %>%
   mutate_all(.funs = ~replace(., . == 0, NA))
 
 
-####1.122 K into Celsius degree conversion ---- 
+####1.142 K into Celsius degree conversion ---- 
 
 lstC <- lst3 %>%  mutate(TempC=TempK-273.15)
 
 lstC %>% glimpse()
 
-###1.12 LST MODIS Data  ---- 
+###1.15 LST MODIS Data  ---- 
 
 mod <- read.csv("/Users/maciejjurzyk/Downloads/Arkusz kalkulacyjny bez tytułu - GRASSAT-WLKP-MOD11A1-061-results.csv")
 
@@ -129,7 +129,7 @@ m4 <- m3 %>% mutate(day=ymd(m3$'mod$First_10_Characters <- substr(mod$Date, 1, 1
 
 m4%>% glimpse() # full success! 
 
-####1.121 0 into NA conversion  ---- 
+####1.151 0 into NA conversion  ---- 
 
 m5 <- m4 %>%
   mutate_all(.funs = ~replace(., . == 0, NA))
@@ -137,7 +137,7 @@ m5 <- m4 %>%
 m5 %>% glimpse()
 
 
-####1.122 K into Celsius degree conversion ---- 
+####1.152 K into Celsius degree conversion ---- 
 
 modlst <- m5 %>%  mutate(TempCday=MOD11A1_061_LST_Day_1km -273.15)
 
@@ -145,7 +145,7 @@ modlst1 <- modlst %>%  mutate(TempCnight=MOD11A1_061_LST_Night_1km  -273.15)
 
 modlst1%>% glimpse()
 
-###1.13 LST Ground Mesurements Data  ---- 
+###1.16 LST Ground Mesurements Data  ---- 
 
 gd <- read.csv("/Users/maciejjurzyk/Downloads/TEMP2M_Recznie - Arkusz1-2.csv")
 
@@ -168,7 +168,7 @@ gd3 <- gd2 %>% mutate(day=ymd(gd2$'gd$First_10_Characters <- substr(gd$Date, 1, 
 
 gd3%>% glimpse() # full success! 
 
-####1.121 0 into NA conversion  ---- 
+####1.161 0 into NA conversion  ---- 
 
 gd4 <- gd3 %>%
   mutate_all(.funs = ~replace(., . == 0, NA))
@@ -176,9 +176,17 @@ gd4 <- gd3 %>%
 gd4 %>% glimpse()
 
 
-###1.2 GGPLOT ----
+# CHR to numeric 
 
-#### 1.21 ET Ecostress ----
+gd5 <- gd4%>%
+  mutate(Temp = as.numeric(gsub(",", ".", Temp)))
+
+gd5 %>% glimpse()
+
+
+#2.0 GGPLOT ----
+
+##2.1 ET Ecostress ----
 
 et %>% ggplot(mapping = aes(x=day,y=ET_canopy))+
   geom_point()+
@@ -193,7 +201,7 @@ et %>% ggplot(mapping = aes(x=day,y=ET_canopy))+
     caption = "Na podstawie danych ECOSTRESS"
   )
 
-#### 1.21 LST Ecostress ----
+##2.2 LST Ecostress ----
 
 lstC %>% ggplot(mapping = aes(x=day,y=TempC))+
   geom_point()+
@@ -209,7 +217,7 @@ lstC %>% ggplot(mapping = aes(x=day,y=TempC))+
   )
   
 
-#### 1.22 LST MODIS ----
+## 2.3 LST MODIS ----
 
 ## Temp Day
 
@@ -240,14 +248,50 @@ modlst1 %>% ggplot(mapping = aes(x=day,y=TempCnight))+
     caption = "Na podstawie danych MODIS"
   )
 
-#Ground measurements 
+##2.4 Temp. Ground measurements 2m ----
 
-gd4 %>% ggplot(mapping = aes(x=day,y=Temp))+
+gd5 %>% ggplot(mapping = aes(x=day,y=Temp))+
   geom_smooth()+
   facet_wrap(~Category)+
   theme_minimal()
 
-# NOT WORKING!!! 
+#3.0 Interactive plots----
+
+library(plotly)
+
+gd4 %>%
+  plot_ly(x = ~day, y = ~Temp, color = ~Category, type = 'scatter', mode = 'lines') %>%
+  layout(title = "Temperatura w zależności od dnia",
+         xaxis = list(title = "Dzień"),
+         yaxis = list(title = "Temperatura")) %>%
+  subplot(titleX = 0.5)
+
+
+
+gd4 %>%
+  plot_ly(x = ~day, y = ~Temp, color = ~Category, type = 'scatter', mode = 'lines') %>%
+  layout(title = "Temperatura w zależności od dnia",
+         xaxis = list(title = "Dzień", range = c(min(gd4$day), max(gd4$day))),
+         yaxis = list(title = "Temperatura",
+                      range = c(-10, 30),
+                      tickvals = seq(-10, 30, by = 2),
+                      ticktext = paste(seq(-10, 30, by = 2), "°C"))) %>%
+  subplot(titleX = 0.5)
+
+
+gd4 %>%
+  plot_ly(x = ~day, y = ~Temp, color = ~Category, type = 'scatter', mode = 'markers') %>%
+  layout(title = "Temperatura w zależności od dnia",
+         xaxis = list(title = "Dzień", range = c(min(gd4$day), max(gd4$day))),
+         yaxis = list(title = "Temperatura",
+                      range = c(-10, 30),
+                      tickvals = seq(-10, 30, by = 2),
+                      ticktext = paste(seq(-10, 30, by = 2), "°C"))) %>%
+  subplot(titleX = 0.5)
+
+
+# 4.0 Joining tables----
+
 
 
 
