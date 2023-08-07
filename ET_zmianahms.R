@@ -363,18 +363,121 @@ tempevp %>% glimpse()
 ggplot(tempevp) +
   geom_point(aes(x = day, y= ET_canopy))+
   geom_smooth(aes(x = day, y= ET_canopy))+
-  geom_smooth(aes(x = day, y= ET_daily))+
+  facet_wrap(~Category)+
   labs(
     title = "Ewapotranspiracja potencjalna na poszczególnych łąkach GRASSAT w Wielkopolsce",
     x = "Data",
-    y = "Ewapotranspiracja",
+    y = "Ewapotranspiracja Canopy",
+    caption = "Na podstawie danych NASA ECOSTRESS"
+  )+
+  theme_minimal()
+
+#4.4 Selecting years----
+
+dane_2021 <- tempevp[format(tempevp$day, "%Y") == "2020",]
+
+
+ggplot(dane_2021) +
+  geom_point(aes(x = day, y= ET_canopy))+
+  geom_smooth(aes(x = day, y= ET_canopy))+
+  facet_wrap(~Category)+
+  labs(
+    title = "Ewapotranspiracja potencjalna na poszczególnych łąkach GRASSAT w Wielkopolsce",
+    x = "Data",
+    y = "Ewapotranspiracja Canopy",
     caption = "Na podstawie danych NASA ECOSTRESS"
   )+
   theme_minimal()
 
 
+#5.0 Evapotranspiration calculations ----
 
-# 5.0 Final Table ====
+##5.1 Tidying tables ----
+
+
+tempevp %>% glimpse()
+
+JECAM <- tempevp %>%
+  select(
+    Category,
+    ID = ID.x,
+    Latitude = Latitude.x,
+    Longitude = Longitude.x,
+    TA_2m = Temp,
+    Date = day,
+    LST_ECOSTRESS = TempC,
+    LST_MODISday =TempCday,
+    LST_MODISnight =TempCnight,
+    ECOSTRESS_ET_canopy=ET_canopy,
+    ECOSTRESS_ET_daily=ET_daily,
+    MODIS_Date = `mod$First_10_Characters <- substr(mod$Date, 1, 10)`)
+
+JECAM %>% glimpse()
+
+##5.2 TS-TA=ET ----
+
+### 5.2.1 MODIS ----
+
+#### 5.2.1.1 Day ----
+
+ET_Modis <- JECAM %>%
+  mutate(ET_ModisD_ts_ta = LST_MODISday - TA_2m)
+
+ET_Modis %>% glimpse()
+
+#### 5.2.1.1 Night ----
+
+ET_Modisn <- ET_Modis %>%
+  mutate(ET_ModisN_ts_ta = LST_MODISnight - TA_2m)
+
+### 5.2.2 ECOSTRESS ----
+
+ET_ECOSTRESS <- ET_Modis %>%
+  mutate(
+    LST_ECOSTRESS = ifelse(LST_ECOSTRESS < -10 | LST_ECOSTRESS > 50, NA, LST_ECOSTRESS))
+
+ET_ECOSTRESS1 <- ET_ECOSTRESS %>% 
+  mutate(ET_ECOSTRESS_ts_ta = LST_ECOSTRESS -TA_2m)
+
+ET_ECOSTRESS1 %>% glimpse()
+
+
+
+
+
+##5.3 GGPLOT ----
+
+
+ggplot(ET_ECOSTRESS) +
+  geom_point(aes(x = Date, y=ET_ModisD_ts_ta ))+
+  geom_smooth(aes(x = Date, y= ET_ModisD_ts_ta ))+
+  facet_wrap(~Category)+
+  labs(
+    title = "Ewapotranspiracja potencjalna na poszczególnych łąkach GRASSAT w Wielkopolsce",
+    x = "Data",
+    y = "Ewapotranspiracja Canopy",
+    caption = "Na podstawie danych NASA MODIS"
+  )+
+  theme_minimal()
+
+
+
+ggplot(ECO_2021) +
+  geom_point(aes(x = Date, y=ET_ECOSTRESS_ts_ta  ))+
+  geom_smooth(aes(x = Date, y= ET_ECOSTRESS_ts_ta  ))+
+  facet_wrap(~Category)+
+  labs(
+    title = "Ewapotranspiracja potencjalna na poszczególnych łąkach GRASSAT w Wielkopolsce",
+    x = "Data",
+    y = "Ewapotranspiracja Canopy",
+    caption = "Na podstawie danych NASA ECOSTRESS"
+  )+
+  theme_minimal()
+
+
+ECO_2021 <- ET_ECOSTRESS1[format(ET_ECOSTRESS1$Date, "%Y") == "2020",]
+
+#x.x Final Table ====
 
 # - tempevp : Evapotranspiration data from ECOSTRESS sensor, LST ECOSTRESSS data,
 # Modis LST night and day data and ground measurements data
