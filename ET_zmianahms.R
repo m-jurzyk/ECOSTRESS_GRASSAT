@@ -205,8 +205,8 @@ et %>% ggplot(mapping = aes(x=day,y=ET_canopy))+
   labs(
     title = "Ewapotranspiracja łąk GRASSAT w Wielkopolsce",
     x = "Data",
-    y = "Ewapotranspiracja (%)",
-    caption = "Na podstawie danych ECOSTRESS"
+    y = "Ewapotranspiracja potencjalna (%)",
+    caption = "Na podstawie danych NASA ECOSTRESS"
   )
 
 ##2.2 LST ECOSTRESS ----
@@ -221,7 +221,7 @@ lstC %>% ggplot(mapping = aes(x=day,y=TempC))+
     title = "Temperatura powierzchni mierzona w ciągu dnia na poszczególnych łąkach GRASSAT w Wielkopolsce",
     x = "Data",
     y = "Temperatura (°C)",
-    caption = "Na podstawie danych ECOSTRESS"
+    caption = "Na podstawie danych NASA ECOSTRESS"
   )
   
 
@@ -340,10 +340,14 @@ ggplot(lstmeg) +
   geom_smooth(aes(x = day, y = TempCday, color = "TempCday")) +
   geom_smooth(aes(x = day, y = TempCnight, color = "TempCnight")) +
   geom_smooth(aes(x = day, y = TempC, color="TempC"))+
-  labs(title = "Porównanie Temperatur Modis dzień noc i pomiarów naziemnych i danych ECOSTRESS ", x = "Rok", y = "Temperatura") +
+  facet_wrap(~Category)+
+  labs(
+    title = "Temperatura poszczególnych łąk GRASSAT w Wielkopolsce",
+    x = "Data pomiaru",
+    y = "Temperatura (°C)",
+    caption = "Na podstawie danych NASA ECOSTRESS, MODIS, Pomiarów naziemnych"
+  )+
   theme_minimal()
-
-
 
 
 ##4.3 Adding evapotranspiration ecostress data----
@@ -360,8 +364,14 @@ ggplot(tempevp) +
   geom_point(aes(x = day, y= ET_canopy))+
   geom_smooth(aes(x = day, y= ET_canopy))+
   geom_smooth(aes(x = day, y= ET_daily))+
-  labs(title = "Porównanie Temperatur Modis dzień noc i pomiarów naziemnych i danych ECOSTRESS ", x = "Rok", y = "Temperatura") +
+  labs(
+    title = "Ewapotranspiracja potencjalna na poszczególnych łąkach GRASSAT w Wielkopolsce",
+    x = "Data",
+    y = "Ewapotranspiracja",
+    caption = "Na podstawie danych NASA ECOSTRESS"
+  )+
   theme_minimal()
+
 
 
 # 5.0 Final Table ====
