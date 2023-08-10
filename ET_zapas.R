@@ -256,7 +256,7 @@ modlst1 %>% ggplot(mapping = aes(x=day,y=TempCnight))+
     caption = "Na podstawie danych MODIS"
   )
 
-##2.4 Temp. Ground measurements 2m ----
+##2.4 ESA ERA5 2m ----
 
 gd5 %>% ggplot(mapping = aes(x=day,y=Temp))+
   geom_point()+
@@ -268,7 +268,7 @@ gd5 %>% ggplot(mapping = aes(x=day,y=Temp))+
     title = "Temperatura powietrza na wysokości 2m na poszczególnych łąkach GRASSAT w Wielkopolsce",
     x = "Data",
     y = "Temperatura (°C)",
-    caption = "Na podstawie pomiarów naziemnych"
+    caption = "ERA 5 "
   )
 
 #3.0 Interactive plots----
@@ -372,10 +372,11 @@ ggplot(tempevp) +
   )+
   theme_minimal()
 
-#4.4 Selecting years----
+#4.4 Filtering tables ----
+
+# Selecting years
 
 dane_2021 <- tempevp[format(tempevp$day, "%Y") == "2020",]
-
 
 ggplot(dane_2021) +
   geom_point(aes(x = day, y= ET_canopy))+
@@ -410,9 +411,28 @@ JECAM <- tempevp %>%
     LST_MODISnight =TempCnight,
     ECOSTRESS_ET_canopy=ET_canopy,
     ECOSTRESS_ET_daily=ET_daily,
-    MODIS_Date = `mod$First_10_Characters <- substr(mod$Date, 1, 10)`)
+    MODIS_Date = `mod$First_10_Characters <- substr(mod$Date, 1, 10)`,
+    ECOSTRESS_quality= ECO2LSTE_001_SDS_QC_Data_quality_flag_Description,
+    Time= 'godz.x')
 
 JECAM %>% glimpse()
+
+### !Warning! ----
+
+# TIRS sensor test (we can observe disturbing temperature results above 30 degrees
+#in December or -50 even when a pixel is marked as very good quality)
+
+JECAM %>% 
+  select(LST_ECOSTRESS, ECOSTRESS_quality, Date, Time) %>% 
+  filter(!is.na(LST_ECOSTRESS),
+         as.numeric(LST_ECOSTRESS) >= -10,
+         as.numeric(LST_ECOSTRESS) <= 45) %>% 
+  arrange(desc(Date)) %>% 
+  distinct(Date, Time, .keep_all = TRUE) %>% 
+  filter(grepl("15H", Time)) %>%
+  ggplot(aes(x=Date,y=LST_ECOSTRESS))+
+  geom_point()+
+  geom_smooth()
 
 ##5.2 TS-TA=ET ----
 
@@ -450,7 +470,7 @@ ET_ECOSTRESS1 %>% glimpse()
 
 ###5.3.1 MODIS ----
 
-ggplot(ET_ECOSTRESS) +
+ggplot(ET_ECOSTRESS1) +
   geom_point(aes(x = Date, y=ET_ModisD_ts_ta ))+
   geom_smooth(aes(x = Date, y= ET_ModisD_ts_ta ))+
   facet_wrap(~Category)+
@@ -463,7 +483,46 @@ ggplot(ET_ECOSTRESS) +
   theme_minimal()
 
 
-###5.3.2 ECOSTRESS 
+
+M2020 <- ET_ECOSTRESS1[format(ET_ECOSTRESS1$Date, "%Y") == "2020",]
+
+M2020 %>% glimpse()
+
+M2020_3_10 <- M2020 %>%
+  mutate(Month = as.numeric(format(Date, "%m"))) %>%
+  filter(Month == 5)
+
+## ET 
+
+ggplot(M2020_3_10) +
+  geom_point(aes(x = Date, y=ET_ModisD_ts_ta ))+
+  geom_smooth(aes(x = Date, y= ET_ModisD_ts_ta ))+
+  facet_wrap(~Category)+
+  labs(
+    title = "Ewapotranspiracja (Ts-Ta) potencjalna na lakach GRASSAT w Wielkopolsce",
+    x = "Data",
+    y = "Ewapotranspiracja (Ts- Ta)",
+    caption = "Na podstawie danych NASA MODIS"
+  )+ scale_y_continuous(limits = c(-30, 30), breaks = seq(-30, 30, by = 5))+
+  theme_minimal()
+
+
+## LST
+
+M2020_3_10 %>% ggplot(aes(x = Date, y=LST_MODISday)) +
+  geom_point()+
+  geom_smooth()+
+  facet_wrap(~Category)+
+  labs(
+    title = "Ewapotranspiracja (Ts-Ta) potencjalna na lakach GRASSAT w Wielkopolsce",
+    x = "Data",
+    y = "Ewapotranspiracja (Ts- Ta)",
+    caption = "Na podstawie danych NASA MODIS"
+  )+ scale_y_continuous(limits = c(10, 40))+
+  theme_minimal()
+
+
+###5.3.2 ECOSTRESS  ----
 
 # Year 2020 
 
@@ -498,17 +557,66 @@ ggplot(filtered_data) +
 
 filtered_data %>% glimpse()
 
+
+
+###5.3.3 ECOSTRESS_selected data----
+
+#### 5.3.3.1 45 > LST > -10 ----
+
+JECAM1 <- JECAM %>% 
+  select(Category,
+         ID, Latitude,
+         Longitude, TA_2m,
+         Date, LST_MODISday,
+         LST_MODISnight,
+         LST_ECOSTRESS,
+         ECOSTRESS_ET_canopy,
+         ECOSTRESS_ET_daily,
+         ECOSTRESS_quality,
+         Date,
+         Time) %>% 
+  filter(!is.na(LST_ECOSTRESS),
+         as.numeric(LST_ECOSTRESS) >= -10,
+         as.numeric(LST_ECOSTRESS) <= 45) %>% 
+  filter(grepl("15H", Time)) %>% # (12:00:00 - 12:59:59)
+  distinct() %>% 
+  arrange(desc(Date))
+
+JECAM1
+
+
+JECAM1%>% ggplot(aes(x=Date,y=LST_ECOSTRESS))+
+  geom_point()+
+  geom_smooth()
+  
+
+
+#### 5.3.3.2 ET ----
+
+filtred_year <- JECAM1[format(JECAM1$Date, "%Y") == "2021",] # Year 2021
+
+filtered_years <- filtred_year %>% 
+  mutate(ET_ECOSTRESS_ts_ta = LST_ECOSTRESS -TA_2m)
+
+#### 5.3.3.3 GGPLOT ----
+ggplot(filtered_years) +
+  geom_point(aes(x = Date, y=ET_ECOSTRESS_ts_ta  ))+
+  geom_smooth(aes(x = Date, y= ET_ECOSTRESS_ts_ta  ))+
+  facet_wrap(~Category)+
+  labs(
+    title = "Ewapotranspiracja (ET= Ts- ta) na lakach GRASSAT w Wielkopolsce w 2021 roku o godzinie 12:00",
+    x = "Data",
+    y = "Ewapotranspiracja (Ts- Ta)",
+    caption = "Na podstawie danych NASA ECOSTRESS"
+  )+
+  theme_minimal()+
+  scale_x_date(date_breaks = "1 month", date_labels = "%b")+
+  scale_y_continuous(limits = c(-30, 30), breaks = seq(-30, 30, by = 5))
+
 #x.x Final Table ====
 
 # - tempevp : Evapotranspiration data from ECOSTRESS sensor, LST ECOSTRESSS data,
 # Modis LST night and day data and ground measurements data
 
-
-filtered_data %>%
-  plot_ly(x = ~Date, y = ~TA_2m, color = ~Category, type = 'scatter', mode = 'lines') %>%
-  layout(title = "Temperatura w zależności od dnia",
-         xaxis = list(title = "Dzień"),
-         yaxis = list(title = "Temperatura")) %>%
-  subplot(titleX = 0.5)
 
                     
